@@ -1,0 +1,7 @@
+{
+  "start": "2023-03-01",
+  "end": "2023-03-31",
+  "avg_value": 36.67761198801889,
+  "threshold_value": 44.013134385622664,
+  "tile_url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/a978faf2bc54037cfa0bcd1702e9731d-5e256de95150fbd18150c13b9bdb5129/tiles/{z}/{x}/{y}"
+}

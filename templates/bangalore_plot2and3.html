@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LST + UHS Slider Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        #map {
+            height: 70%;
+            width: 100%;
+        }
+        #chartContainer {
+            height: 30%;
+            padding: 10px;
+        }
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="chartContainer">
+        <canvas id="barChart"></canvas>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const map = L.map('map').setView([12.9716, 77.5946], 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        ward_code_to_name = {
+            "A": "Colaba",
+            "B": "Sandhurst Road",
+            "C": "Marine Lines",
+            "D": "Girgaon",
+            "E": "Byculla",
+            "F/S": "Parel",
+            "F/N": "Mahim",
+            "G/S": "Dadar West",
+            "G/N": "Bandra",
+            "H/E": "Santacruz East",
+            "H/W": "Andheri West",
+            "K/E": "Andheri East",
+            "K/W": "Goregaon",
+            "L": "Kurla",
+            "M/E": "Chembur East",
+            "M/W": "Chembur West",
+            "N": "Ghatkopar",
+            "S": "Bhandup",
+            "T": "Mulund",
+            "P/S": "Malad East",
+            "P/N": "Borivali",
+            "R/S": "Borivali East",
+            "R/C": "Borivali North",
+            "R/N": "Dahisar"
+        }
+
+        let currentLayer = null;
+        let barChart = null;
+        let monthLabels = [];
+
+        // Fetch month list
+        fetch("/static/data_json/BANGALORE/month_labels.json")
+            .then(res => res.json())
+            .then(labels => {
+                monthLabels = labels;
+                createSlider();
+                loadMonthData(0); // Initial month
+            });
+
+        function createSlider() {
+            const sliderControl = L.control({ position: 'topright' });
+
+            sliderControl.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'info legend');
+                div.innerHTML = `
+                    <label for="monthSlider"><b>Month:</b></label><br>
+                    <input type="range" min="0" max="${monthLabels.length - 1}" value="0" id="monthSlider" step="1">
+                    <div id="sliderLabel">${monthLabels[0]}</div>
+                `;
+                div.style.background = "white";
+                div.style.padding = "10px";
+                div.style.border = "2px solid gray";
+                div.style.borderRadius = "5px";
+                return div;
+            };
+
+            sliderControl.addTo(map);
+
+            document.getElementById("monthSlider").addEventListener("input", function (e) {
+                const index = +e.target.value;
+                document.getElementById("sliderLabel").innerText = monthLabels[index];
+                loadMonthData(index);
+            });
+        }
+
+        function loadMonthData(index) {
+            const month = monthLabels[index];
+            const basePath = `/static/data_json/BANGALORE/${month}`;
+
+            Promise.all([
+                fetch(`${basePath}/ward_geojson.json`).then(res => res.json()),
+                fetch(`${basePath}/top10_lst_data.json`).then(res => res.json()),
+                fetch(`${basePath}/min_max_lst.json`).then(res => res.json())
+            ]).then(([wardGeojson, top10Data, minMax]) => {
+                updateMap(wardGeojson);
+                updateChart(top10Data, month);
+            }).catch(err => {
+                console.error("Error loading month data:", err);
+            });
+        }
+
+        function updateMap(geojson) {
+    if (currentLayer) map.removeLayer(currentLayer);
+
+    const minLST = geojson.features.reduce((min, f) => Math.min(min, f.properties.avg_LST ?? Infinity), Infinity);
+    const maxLST = geojson.features.reduce((max, f) => Math.max(max, f.properties.avg_LST ?? -Infinity), -Infinity);
+
+    function interpolateColor(t) {
+        // t: normalized value [0, 1] from min (blue) to max (red)
+        const r = Math.round(255 * t);
+        const g = 0;
+        const b = Math.round(255 * (1 - t));
+        return `rgb(${r},${g},${b})`;
+    }
+
+    function style(feature) {
+        const avgLST = feature.properties.avg_LST;
+        let fillColor = '#ccc'; // Default color for missing LST
+
+        if (avgLST !== null && avgLST !== undefined && maxLST > minLST) {
+            const t = (avgLST - minLST) / (maxLST - minLST);
+            fillColor = interpolateColor(t);
+        }
+
+        return {
+            fillColor: fillColor,
+            weight: 0.5,
+            color: 'black',
+            fillOpacity: 0.7
+        };
+    }
+
+    function onEachFeature(feature, layer) {
+        layer.on({
+            mouseover: function (e) {
+                var layer = e.target;
+                layer.setStyle({
+                    weight: 3,
+                    color: '#333',
+                    fillOpacity: 0.9
+                });
+
+                var avgLST = feature.properties.avg_LST;
+                var wardID = feature.properties.KGISWardNa || "Unknown";
+
+                var popupContent = `<b>Ward ID:</b> ${wardID}<br>`;
+                if (avgLST !== null && avgLST !== undefined) {
+                    popupContent += `<b>Avg LST:</b> ${avgLST.toFixed(2)} °C`;
+                } else {
+                    popupContent += `<b>Avg LST:</b> No LST data`;
+                }
+
+                layer.bindPopup(popupContent).openPopup();
+            },
+            mouseout: function (e) {
+                currentLayer.resetStyle(e.target);
+                e.target.closePopup();
+            }
+        });
+    }
+
+    currentLayer = L.geoJSON(geojson, {
+        style: style,
+        onEachFeature: onEachFeature
+    }).addTo(map);
+}
+
+
+        function updateChart(top10Data, monthLabel) {
+            const labels = top10Data.map(d => d.KGISWardNa);
+            const values = top10Data.map(d => d.lst);
+
+            if (barChart) {
+                barChart.data.labels = labels;
+                barChart.data.datasets[0].data = values;
+                barChart.options.plugins.title.text = `Top 10 Hottest Wards: ${monthLabel}`;
+                barChart.update();
+            } else {
+                const ctx = document.getElementById('barChart').getContext('2d');
+                barChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Average LST (°C)',
+                            data: values,
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `Top 10 Hottest Wards: ${monthLabel}`,
+                                font: {
+                                    size: 16
+                                }
+                            },
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: 20,
+                                title: {
+                                    display: true,
+                                    text: 'Avg LST (°C)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Ward ID'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

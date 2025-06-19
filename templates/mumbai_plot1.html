@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LST + Urban Heat Spots Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; width: 100vw; }
+        #sliderContainer {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+            z-index: 1000;
+            font-family: sans-serif;
+        }
+        #avgTemp {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+<div id="sliderContainer">
+    <label for="monthSlider"><b>Month:</b> <span id="monthLabel">January</span></label>
+    <input type="range" id="monthSlider" min="0" max="2" step="1">
+    <div id="avgTemp"><b>City Avg LST:</b> <span id="avgValue">Loading...</span> °C</div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    const map = L.map('map').setView([19.0760, 72.8777], 11);
+
+    // Base Layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Urban Heat Spots Layer
+    const uhsLayer = L.tileLayer('https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/59df9ee45dfb29ea85c4896d11f9a829-a56fc415040b848d3488b3d298e477f9/tiles/{z}/{x}/{y}', {
+        attribution: 'UHS via GEE',
+        maxZoom: 16,
+        opacity: 0.6
+    }).addTo(map);
+
+    const months = [
+        { label: "January", file: "01.json" },
+        { label: "March", file: "03.json" },
+        { label: "April",   file: "04.json" },
+    ];
+
+    let lstLayers = [];
+    let currentLSTLayer = null;
+    let monthData = [];
+
+    const slider = document.getElementById("monthSlider");
+    const label = document.getElementById("monthLabel");
+    const avgValueSpan = document.getElementById("avgValue");
+
+    Promise.all(months.map((m, i) =>
+        fetch(`/static/data_json/MUMBAI/lst_layer/2023/${m.file}`)
+            .then(res => res.json())
+            .then(data => {
+                m.tile_url = data.tile_url;
+                m.avg_value = data.avg_value;
+                monthData[i] = m;
+
+                return L.tileLayer(data.tile_url, {
+                    attribution: "LST via GEE",
+                    maxZoom: 16,
+                    opacity: 0.7
+                });
+            })
+    )).then(layers => {
+        lstLayers = layers;
+
+        // Initially load first month
+        currentLSTLayer = lstLayers[0];
+        currentLSTLayer.addTo(map);
+        avgValueSpan.textContent = monthData[0].avg_value.toFixed(2);
+
+        slider.addEventListener("input", function () {
+            const index = parseInt(this.value);
+            label.textContent = monthData[index].label;
+            avgValueSpan.textContent = monthData[index].avg_value.toFixed(2);
+
+            if (currentLSTLayer) map.removeLayer(currentLSTLayer);
+            currentLSTLayer = lstLayers[index];
+            currentLSTLayer.addTo(map);
+        });
+    });
+</script>
+
+</body>
+</html>
