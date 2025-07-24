@@ -1,0 +1,11 @@
+flask
+gunicorn
+pandas
+geopandas
+matplotlib
+shapely
+numpy
+rasterio
+folium
+earthengine-api
+python-dotenv

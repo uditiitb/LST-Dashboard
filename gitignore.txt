@@ -1,0 +1,11 @@
+# Ignore secret keys
+.env
+*.json
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Ignore template folder
+template/
+static/
