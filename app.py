@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 from datetime import date
 from dateutil.relativedelta import relativedelta          # pip install python-dateutil
 import calendar
-import cdsapi
 import xarray as xr
 import pandas as pd
 
