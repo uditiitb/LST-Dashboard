@@ -2,6 +2,7 @@
   "start": "2023-01-01",
   "end": "2023-01-31",
   "avg_value": 29.21879584577831,
-  "threshold_value": 35.06255501493397,
-  "tile_url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/8d2c9a8c699ae0626dcd9ed75e3055c9-49cafd6d314504acbe23e36702e53434/tiles/{z}/{x}/{y}"
+  "threshold_value": 29.21879584577831,
+  "tile_url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/4530a5c7ed70cd0e618560f1e10f094d-7d708c3c57f63d1b26003d887662ad22/tiles/{z}/{x}/{y}",
+  "cloud_tile_url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/a048c358aa2ed8da64b3ff7c954768ff-747a96ea9c01630f1e7cf74b336e4d88/tiles/{z}/{x}/{y}"
 }

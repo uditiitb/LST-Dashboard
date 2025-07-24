@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Yearly Avg LST Timeline</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { margin: 40px; font-family: Arial, sans-serif; }
+        canvas { max-width: 800px; }
+    </style>
+</head>
+<body>
+    <h2>Average Land Surface Temperature (°C) (2000–2024)</h2>
+    <canvas id="lstChart"></canvas>
+
+    <script>
+        const CITY = "{{ CITY }}";
+        console.log("City is:", CITY);
+        const startYear = 2000;
+        const endYear = 2024;
+        const years = Array.from({length: endYear - startYear + 1}, (_, i) => startYear + i);
+        const lstData = [];
+
+        async function fetchData() {
+            for (let year of years) {
+                try {
+                    const response = await fetch(`/static/data_json/${CITY}/${year}.json`);
+                    const json = await response.json();
+                    lstData.push(json[year]);
+                } catch (error) {
+                    console.error(`Failed to load data for ${year}:`, error);
+                    lstData.push(null); // Use null to leave a gap in the chart
+                }
+            }
+            renderChart();
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('lstChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years.map(String),
+                    datasets: [{
+                        label: 'Average LST (°C)',
+                        data: lstData,
+                        fill: false,
+                        borderColor: 'rgb(255, 99, 132)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${CITY} Yearly Average Land Surface Temperature (LST)`
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'LST (°C)'
+                            },
+                            beginAtZero: true,
+                            
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>

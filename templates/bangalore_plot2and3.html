@@ -74,7 +74,7 @@
         let monthLabels = [];
 
         // Fetch month list
-        fetch("/static/data_json/BANGALORE/month_labels.json")
+        fetch("/static/data_json/Bangalore/month_labels.json")
             .then(res => res.json())
             .then(labels => {
                 monthLabels = labels;
@@ -110,7 +110,7 @@
 
         function loadMonthData(index) {
             const month = monthLabels[index];
-            const basePath = `/static/data_json/BANGALORE/${month}`;
+            const basePath = `/static/data_json/Bangalore/${month}`;
 
             Promise.all([
                 fetch(`${basePath}/ward_geojson.json`).then(res => res.json()),
@@ -118,6 +118,8 @@
                 fetch(`${basePath}/min_max_lst.json`).then(res => res.json())
             ]).then(([wardGeojson, top10Data, minMax]) => {
                 updateMap(wardGeojson);
+                console.log("top10Data",top10Data);
+                console.log("month",month);
                 updateChart(top10Data, month);
             }).catch(err => {
                 console.error("Error loading month data:", err);
@@ -192,9 +194,9 @@
 
 
         function updateChart(top10Data, monthLabel) {
-            const labels = top10Data.map(d => d.KGISWardNa);
+            const labels = top10Data.map(d => d.ward);
             const values = top10Data.map(d => d.lst);
-
+            // console.log(labels)
             if (barChart) {
                 barChart.data.labels = labels;
                 barChart.data.datasets[0].data = values;

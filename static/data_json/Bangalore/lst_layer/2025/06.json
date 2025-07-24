@@ -1,0 +1,8 @@
+{
+  "start": "2025-06-01",
+  "end": "2025-06-30",
+  "avg_value": 28.062518825218003,
+  "threshold_value": 0,
+  "tile_url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/fda81854f35606dd7abc7a781f01cc9e-5e02360e719df1d74b09bd7dc72ba5b1/tiles/{z}/{x}/{y}",
+  "cloud_tile_url": "https://earthengine.googleapis.com/v1/projects/earthengine-legacy/maps/5d26a65001466a22dd95ff48506285e0-856e27d3cf15f4a6e34ebcfac0c21419/tiles/{z}/{x}/{y}"
+}

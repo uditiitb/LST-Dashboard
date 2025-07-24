@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Combined LST Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet.sync"></script>   <!-- map sync -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    html,body{margin:0;padding:0;font-family:sans-serif}
+    .section{border:1px solid #ccc;padding:10px;border-radius:8px;margin:10px auto;
+             max-width:1000px;background:#f9f9f9}
+    #mapRow{display:flex;gap:8px;height:65vh}
+    #mapJan,#mapApr{flex:1}
+    #map2{height:65vh;width:100%}
+    canvas{width:100%!important;height:100%!important}
+    .legend-box{background:#fff;padding:6px 8px;font-size:12px;border-radius:4px;
+                box-shadow:0 0 4px rgba(0,0,0,.2);line-height:1.1;display:flex;
+                align-items:center;gap:6px;user-select:none}
+  </style>
+</head>
+<body>
+
+<!-- 1️⃣ SINGLE LST MAP -->
+<div class="section" id="mapContainer">
+  <h2>🌍 LST – May 2025</h2>
+  <div id="mapSingle" style="height:65vh;"></div>
+  <p style="text-align:center;margin:6px 0 0 0;">
+    <b>City-wide average:</b> <span id="avgMay">–</span> °C 
+  </p>
+</div>
+
+<!-- 2️⃣ WARD-WISE MAP + TOP-10 BAR CHART -->
+<div class="section" id="wardChartMapContainer">
+  <h2>🗘 Ward-wise LST Map & Top‑10 Hottest Wards – May 2025</h2>
+  <div id="map2" style="height:65vh;"></div>
+  <canvas id="barChart" style="margin-top:16px;"></canvas>
+</div>
+
+<script>
+const CITY = "{{ CITY }}";        // e.g., "MUMBAI"
+const YEAR = "{{ YEAR }}";        // e.g., "2025"
+let MONTH = "{{ MONTH }}";        // raw string from template
+MONTH = MONTH.toString().padStart(2, '0');  // ensures "6" → "06"
+      // e.g., "06"
+
+// Get city center coordinates
+const dimm = CITY.toUpperCase() === "MUMBAI" ? [19.0760, 72.8777] :
+             CITY.toUpperCase() === "BANGALORE" ? [12.9716, 77.5946] :
+             CITY.toUpperCase() === "DELHI" ? [28.6139, 77.2090] :
+             CITY.toUpperCase() === "AHMEDABAD"?  [23.0339, 72.5850]: 
+             [20.5937, 78.9629];
+
+// Month number to name
+const monthNumToName = {
+  "01": "January", "02": "February", "03": "March", "04": "April",
+  "05": "May", "06": "June", "07": "July", "08": "August",
+  "09": "September", "10": "October", "11": "November", "12": "December"
+};
+const MONTH_NAME = monthNumToName[MONTH];
+
+// ========== 1️⃣ SINGLE MONTH LST MAP ==========
+document.querySelector("#mapContainer h2").innerHTML = `🌍 LST – ${MONTH_NAME} ${YEAR}`;
+const map1 = L.map('mapSingle').setView(dimm, 10.5); addBase(map1);
+
+fetch(`/static/data_json/${CITY}/lst_layer/${YEAR}/${MONTH}.json`)
+  .then(r => r.json())
+  .then(json => {
+    L.layerGroup([
+      L.tileLayer(json.tile_url, { opacity: 0.7, attribution: "LST" }),
+      L.tileLayer(json.cloud_tile_url, { opacity: 0.5 })
+    ]).addTo(map1);
+    document.getElementById('avgMay').textContent = json.avg_value.toFixed(2);
+    document.querySelector("#avgMay").parentElement.innerHTML += ` (${MONTH_NAME})`;
+  });
+
+// ========== 2️⃣ WARD-WISE MAP & TOP-10 ==========
+document.querySelector("#wardChartMapContainer h2").innerHTML =
+  `🗘 Ward-wise LST Map & Top‑10 Hottest Wards – ${MONTH_NAME} ${YEAR}`;
+
+const map2 = L.map('map2').setView(dimm, 10.5); addBase(map2);
+
+const ward_code_to_name = {
+  "A": "Colaba", "B": "Sandhurst Road", "C": "Marine Lines", "D": "Girgaon",
+  "E": "Byculla", "F/S": "Parel", "F/N": "Mahim", "G/S": "Dadar West", "G/N": "Bandra",
+  "H/E": "Santacruz East", "H/W": "Andheri West", "K/E": "Andheri East",
+  "K/W": "Goregaon", "L": "Kurla", "M/E": "Chembur East", "M/W": "Chembur West",
+  "N": "Ghatkopar", "S": "Bhandup", "T": "Mulund", "P/S": "Malad East", "P/N": "Borivali",
+  "R/S": "Borivali East", "R/C": "Borivali North", "R/N": "Dahisar"
+};
+
+fetch(`/static/data_json/${CITY}/${MONTH_NAME}-${YEAR}/ward_geojson.json`)
+  .then(r => r.json()).then(geo => {
+    const min = Math.min(...geo.features.map(f => f.properties.avg_LST));
+    const max = Math.max(...geo.features.map(f => f.properties.avg_LST));
+    const getColor = v => {
+      const r = (v - min) / (max - min);
+      return `rgb(${Math.round(255 * r)},0,${Math.round(255 * (1 - r))})`;
+    };
+
+    const legend = L.control({ position: 'bottomright' });
+    legend.onAdd = () => {
+      const d = L.DomUtil.create('div', 'legend-box');
+      const bar = document.createElement('div');
+      bar.style = `width:18px;height:140px;background:linear-gradient(to top,blue,red);border:1px solid #ccc`;
+      const lab = document.createElement('div');
+      lab.style = `display:flex;flex-direction:column;justify-content:space-between;height:140px`;
+      lab.innerHTML = `<span>${max.toFixed(1)}°C</span><span>${((max + min) / 2).toFixed(1)}°C</span><span>${min.toFixed(1)}°C</span>`;
+      d.appendChild(bar); d.appendChild(lab);
+      L.DomEvent.disableClickPropagation(d);
+      return d;
+    };
+    legend.addTo(map2);
+
+    const geoLayer = L.geoJSON(geo, {
+  style: f => {
+    if (f.properties.cloud_cover === 1) {
+      return {
+        fillColor: '#888888',     // grey
+        fillOpacity: 0.2,         // transparent
+        color: '#555',            // subtle border
+        weight: 1,
+        dashArray: '2,4'          // dashed border to indicate uncertainty
+      };
+    } else {
+      return {
+        fillColor: getColor(f.properties.avg_LST),
+        fillOpacity: 0.6,
+        color: '#000',
+        weight: 1
+      };
+    }
+  },
+  onEachFeature: (f, l) => {
+    let wardName;
+    if (CITY.toUpperCase() === "MUMBAI") {
+      wardName = ward_code_to_name[f.properties.Name] || f.properties.Name;
+    } else if (CITY == "BANGALORE" || "Bangalore") {
+      wardName = f.properties.KGISWardNa;
+    } else {
+      wardName = f.properties.Name || f.properties.NAME || "Ward";
+    }
+
+    const tooltipContent = f.properties.cloud_cover === 1
+      ? `<b>${wardName}</b><br>⚠️ Data not available (cloud cover)`
+      : `<b>${wardName}</b><br>LST: ${f.properties.avg_LST.toFixed(2)} °C`;
+
+    l.bindTooltip(tooltipContent, { direction: 'top', sticky: true, opacity: 0.9 });
+
+    l.on({
+      mouseover: e => e.target.setStyle({ weight: 2, color: '#333', fillOpacity: 0.9 }),
+      mouseout: e => geoLayer.resetStyle(e.target)
+    });
+  }
+}).addTo(map2);
+
+  });
+
+fetch(`/static/data_json/${CITY}/${MONTH_NAME}-${YEAR}/top10_lst_data.json`)
+  .then(r => r.json()).then(data => {
+    const ctx = document.getElementById('barChart').getContext('2d');
+    const labels = data.map(d => CITY.toUpperCase() === "MUMBAI" ? ward_code_to_name[d.ward] : d.ward);
+    const values = data.map(d => d.lst);
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Avg LST (°C)',
+          data: values,
+          backgroundColor: 'rgba(255,99,132,.6)'
+        }]
+      },
+      options: {
+        responsive: true,
+        indexAxis: 'y',
+        plugins: {
+          title: { display: true, text: `Top 10 Hottest Wards – ${MONTH_NAME} ${YEAR}` },
+          legend: { display: false }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Avg LST (°C)' } },
+          y: { title: { display: true, text: 'Ward' } }
+        }
+      }
+    });
+  });
+
+function addBase(m) {
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(m);
+}
+</script>
+
+</body>
+</html>

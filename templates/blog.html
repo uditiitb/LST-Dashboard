@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LST Blog Articles</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; }
+    header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+    background-color: #1976d2;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    header h1 { margin: 0; font-size: 24px; }
+    .description {
+      max-width: 900px;
+      margin: 20px auto;
+      text-align: center;
+      font-size: large;
+    }
+    .blog-container {
+        margin-top: 100px;;
+      max-width: 97%;
+      margin: auto;
+      padding: 20px;
+    }
+    .blog-card {
+      background-color: #e3f2fd;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: 0.3s;
+    }
+    .blog-card:hover {
+      transform: scale(1.01);
+      background-color: #d0e6fa;
+    }
+    .blog-title {
+      margin-top: 0;
+      color: #0d47a1;
+    }
+    .blog-meta {
+      font-size: 0.9em;
+      color: #555;
+      margin-bottom: 10px;
+    }
+    .blog-content {
+      font-size: 1em;
+      line-height: 1.8;
+      color: #333;
+      text-align: justify;
+      text-indent: 2em;
+    }
+    nav {
+      text-align: center;
+      margin-top: 10px;
+    }
+    nav a {
+      color: #1976d2;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    .sidenav {
+      height: 100%;
+      width: 0;
+      position: fixed;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      background-color: #111;
+      overflow-x: hidden;
+      transition: 0.3s;
+      padding-top: 60px;
+    }
+    .sidenav a {
+      padding: 8px 8px 8px 32px;
+      text-decoration: none;
+      font-size: 20px;
+      color: #f1f1f1;
+      display: block;
+      transition: 0.3s;
+    }
+    .sidenav a:hover {
+      color: #ffa;
+    }
+    .sidenav .closebtn {
+      position: absolute;
+      top: 0;
+      right: 20px;
+      font-size: 36px;
+    }
+    #hamburger {
+  font-size: 30px;
+  cursor: pointer;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  color: white;
+  z-index: 3; /* increase if needed */
+}
+
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body>
+
+<div id="hamburger" onclick="toggleNav()">☰</div>
+<div id="mySidenav" class="sidenav">
+  <!-- <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a> -->
+  <a href="#intro">📘 Introduction</a>
+  <a href="#methodology">📘 Methodology</a>
+</div>
+
+<main id="mainContent">
+
+<header>
+  <h1>LST Blog: Deep Dive Into Heat Mapping</h1>
+</header>
+
+<div class="description">
+  <p>Explore methods used to enhance Land Surface Temperature (LST) resolution, identify urban hotspots, and evaluate algorithmic accuracy in geospatial analysis.</p>
+</div>
+
+<div class="blog-container">
+
+  <div class="blog-card" id="intro">
+    <h2 class="blog-title">📘 Introduction</h2>
+    <div class="blog-meta">Urban Heat Islands and LST Importance</div>
+    <div class="blog-content">
+      With increasing urbanization and climate change, <strong>urban heat islands (UHIs)</strong> have become a critical environmental issue, particularly in <strong>Indian cities</strong>, where summer temperatures frequently exceed 45°C. The <strong>Urban Heat Island effect</strong> arises due to the replacement of natural landscapes with heat-absorbing infrastructure such as asphalt, concrete, and metal, which retain more heat compared to vegetated surfaces. This phenomenon leads to <strong>higher ambient temperatures in urban areas</strong>, exacerbating the impact of <strong>heatwaves, increasing energy consumption for cooling, and posing serious health risks</strong>, particularly for vulnerable populations.<br><br>
+
+      One of the most effective ways to assess <strong>UHI intensity</strong> is through <strong>Land Surface Temperature (LST)</strong> analysis, which provides insights into urban thermal patterns. Several studies have examined the relationship between <strong>urbanization, land use changes, and LST variations</strong> in Indian cities. However, existing research often focuses on individual cities rather than a <strong>comprehensive multi-city comparison</strong>. Moreover, while satellite-based LST estimation has been widely used, there is a need for a more <strong>systematic, automated approach</strong> to analyze urban heat patterns over time and across multiple cities.<br><br>
+
+      <strong>1.1. Significance of the Study</strong><br>
+      This study aims to address these gaps by:
+      <ol>
+        <li><strong>Mapping urban heat island hotspots in 20 major Indian cities</strong> using satellite-based geospatial analysis.</li>
+        <li><strong>Applying statistical methods</strong> such as thresholding, Urban Thermal Field Variance Index (UTFVI), and spatial statistical analysis (Getis-Ord Gi*) to identify and assess heat-prone areas.</li>
+        <li><strong>Conducting a temporal analysis</strong> to examine how LST patterns have evolved over the past decade.</li>
+        <li><strong>Providing automated data processing tools</strong> to streamline heat island analysis across multiple urban areas.</li>
+      </ol>
+      By integrating <strong>Google Earth Engine (GEE)</strong> for large-scale data processing, this study contributes to <strong>urban planning and climate adaptation strategies</strong> by providing policymakers with critical insights for mitigating heat-related risks through urban design interventions such as <strong>green spaces, reflective surfaces, and heat-resistant infrastructure</strong>.
+    </div>
+  </div>
+
+  <div class="blog-card" id="methodology">
+  <h2 class="blog-title">📘 Methodology</h2>
+
+  <h3>🛰️ Google Earth Engine API Setup</h3>
+  <ol>
+    <li><strong>Enable the API:</strong> Visit the <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a>, create/select a project, and enable the Earth Engine API from the API library.</li>
+    <li><strong>Create Service Account:</strong> In “IAM & Admin,” create a service account. Assign the Viewer role or skip roles if unused.</li>
+    <li><strong>Generate Key:</strong> Create a new key (JSON) for the service account and download it.</li>
+    <li><strong>Grant Earth Engine Access:</strong> Go to <a href="https://code.earthengine.google.com/permissions" target="_blank">Earth Engine Permissions</a> and add the service account email.</li>
+    <li><strong>Install API:</strong> In your environment, run:<br><code>pip install earthengine-api</code></li>
+    <li><strong>Initialize in Python:</strong><br>
+      <pre><code>import ee
+credentials = ee.ServiceAccountCredentials(
+    'your-service-account@your-project.iam.gserviceaccount.com',
+    'path/to/credentials.json'
+)
+ee.Initialize(credentials)</code></pre>
+    </li>
+  </ol>
+  
+  <h3>📅 Date Range Configuration</h3>
+  <img src="static/images/date.jpg" width="400" height="300" alt="Example Image" />
+
+  <p>The dashboard auto-computes the last two full months based on the current date using <code>datetime</code> and <code>relativedelta</code>. It prepares start/end dates to fetch and process temperature data per city. Each city’s output is stored in structured folders named by city and month.</p>
+
+  <h3>🗺️ Google Earth Engine Setup and Shapefile Handling</h3>
+  <img src="static/images/setup.jpg" width="600" height="300" alt="Example Image" />
+  <ul>
+    <li><strong>Authentication:</strong> Earth Engine is initialized via a service account and JSON key.</li>
+    <li><strong>Shapefile Extraction:</strong> Each city’s boundary is stored as a zipped shapefile. It's extracted temporarily.</li>
+    <li><strong>Loading Geometry:</strong> The shapefile is loaded with GeoPandas, geometries are merged via <code>union_all()</code>, and converted to <code>ee.Geometry</code> for spatial analysis.</li>
+  </ul>
+
+  <h3>🌡️ Land Surface Temperature (LST) Extraction and Processing</h3>
+  <img src="static/images/i3.jpg" alt="Example Image" />
+  <img src="static/images/i2.jpg" alt="Example Image" />
+  <ul>
+    <li><strong>LST from Landsat:</strong> Landsat 8 & 9 data (ST_B10 band) is used. It's scaled to Celsius and cloud/cloud-shadow pixels are masked using QA flags.</li>
+    <li><strong>Monthly Composites:</strong> For each month, imagery is filtered by city geometry and date range. A median composite is created from clear pixels.</li>
+    <li><strong>Ward-Level LST:</strong> Each ward's average LST is calculated. Wards with no clear pixels are flagged as cloudy. Cloud presence is assessed using unmasked pixel checks.</li>
+    <li><strong>Data Storage:</strong>
+      <ul>
+        <li>GeoJSON with each ward's LST and cloud cover</li>
+        <li>Top 10 hottest wards (by LST) in JSON</li>
+        <li>Min/Max LST values for visualization scaling</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>📊 Yearly Average Temperature (ERA5 - Meteoblue Style)</h3>
+  <img src="static/images/year.jpg" alt="Example Image" />
+  <ul>
+    <li><strong>Source:</strong> ERA5-Land Hourly (2m air temp) data via GEE, from 1980 to previous year</li>
+    <li><strong>Processing:</strong> For each year:
+      <ul>
+        <li>Daily min and max are calculated</li>
+        <li>Daily average: (Tmin + Tmax) / 2, converted from Kelvin to Celsius</li>
+        <li>Yearly mean temperature is computed over the city geometry</li>
+      </ul>
+    </li>
+    <li><strong>Storage:</strong> Each year’s mean value is saved in JSON format for visual comparison</li>
+  </ul>
+
+  <h3>🗺️ LST Visualization Tiles (2025)</h3>
+  <img src="static/images/lst.jpg" alt="Example Image" />
+  <ul>
+    <li><strong>Cloud Filtering:</strong> Landsat 8/9 images are filtered to exclude dilated clouds, cirrus, cloud shadows, and snow using QA_PIXEL bits.</li>
+    <li><strong>LST Calculation:</strong> ST_B10 is scaled to °C. Only cloud-free pixels are used for a monthly median composite.</li>
+    <li><strong>Visualization Layers:</strong>
+      <ul>
+        <li>City-wide mean LST is computed</li>
+        <li>A threshold mask hides very low values</li>
+        <li>A cloud mask layer is generated separately</li>
+      </ul>
+    </li>
+    <li><strong>Tile URLs:</strong> LST and cloud layers are converted into dynamic tile URLs for frontend map rendering.</li>
+    <li><strong>Monthly JSON:</strong> For each month:
+      <ul>
+        <li>Start & end dates</li>
+        <li>Average LST</li>
+        <li>Threshold used</li>
+        <li>LST tile URL</li>
+        <li>Cloud tile URL</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+
+  <!-- Expanded section for Methodology -->
+<div class="blog-card" id="methodology-expanded">
+  <h2 class="blog-title">📘 Understanding the LST Extraction Logic</h2>
+  <div class="blog-meta">Detailed Breakdown of Google Earth Engine Computations</div>
+  <div class="blog-content">
+
+    <strong>3.1 How Land Surface Temperature (LST) is Calculated</strong><br>
+    We compute LST using the thermal infrared band (Band 10) of the Landsat 8 Collection 2 Level-2 data. The equation used in our script is:<br><br>
+    <code>LST = ST_B10 * 0.00341802 + 149.0 - 273.15</code><br><br>
+    Here's what each component means:
+    <ul>
+      <li><strong>ST_B10:</strong> This is the surface temperature band provided by Landsat in scaled form (scale factor = 0.00341802 and offset = 149.0).</li>
+      <li><strong>Multiplying by 0.00341802</strong> converts the digital number to top-of-atmosphere brightness temperature in Kelvin.</li>
+      <li><strong>Adding 149.0</strong> is the radiometric offset provided in Landsat's metadata.</li>
+      <li><strong>Subtracting 273.15</strong> converts the temperature from Kelvin to Celsius.</li>
+    </ul>
+    The final result is a new image where each pixel represents the land surface temperature in degrees Celsius.
+
+    <br><br>
+    <strong>3.2 Why We Take Median of the Image Collection</strong><br>
+    We use <code>collection.median()</code> to compute the median LST value across all cloud-free observations during the specified month. This ensures that transient weather conditions (e.g., cloud cover or anomalies) don’t distort the monthly average. Median is preferred over mean as it is more robust to outliers.
+
+    <br><br>
+    <strong>3.3 Averaging LST Over Administrative Wards</strong><br>
+    To derive average LST values at the ward level, each ward polygon is iterated, and the LST image is reduced using:
+    <code>image.reduceRegion(ee.Reducer.mean(), geometry, scale=1000)</code>.<br>
+    - The <strong>mean reducer</strong> gives the average LST within each ward.
+    - <strong>Scale of 1000 meters</strong> is chosen to match the MODIS resolution and reduce computation time, as Landsat data is more granular (30m).
+
+    <br><br>
+    <strong>3.4 Classification Into Color Classes</strong><br>
+    Once LST values are extracted for each ward, we divide them into 5 classes based on quantiles (20%, 40%, 60%, 80%). Each class is assigned a color code for visualization.<br>
+    This classification helps in clearly identifying high-temperature zones and comparing across wards.
+
+    <br><br>
+    <strong>3.5 Top 10 Hottest Wards</strong><br>
+    We sort the wards in descending order of their average LST values and extract the top 10. These are stored separately for use in dashboards and analytics.
+
+    <br><br>
+    <strong>3.6 Annual and Monthly Averages</strong><br>
+    <ul>
+      <li><strong>Landsat (2013-2024):</strong> We compute yearly average LST using median composite images for the entire year.</li>
+      <li><strong>MODIS (2000-2025):</strong> Monthly averages are calculated using MOD11A2 8-day composites aggregated to the monthly scale. The values are converted using <code>LST * 0.02 - 273.15</code> to bring them to Celsius.</li>
+    </ul>
+    These temporal datasets help in understanding LST trends over time.
+
+    <br><br>
+    <strong>3.7 Masking Hotspots for Visualization</strong><br>
+    To highlight unusually hot areas, we use a masking threshold:
+    <code>masked_image = median_image.updateMask(median_image.gt(avg_lst * 1.2))</code><br>
+    - This means only pixels with LST &gt; 120% of average citywide LST are retained.
+    - It allows us to visually highlight hotspots on a map.
+
+    <br><br>
+    <strong>3.8 Serving Visual Layers on the Web</strong><br>
+    Using <code>getMapId()</code> and <code>tile_url</code>, we export a visualization tile layer styled using:
+    <pre>{
+      min: 15,
+      max: 45,
+      palette: ['blue', 'cyan', 'green', 'yellow', 'red']
+    }</pre>
+    This visual layer is loaded dynamically on the city dashboard using Leaflet.js.
+
+    <br><br>
+    <strong>3.9 Summary</strong><br>
+    The entire pipeline is implemented in Python with Google Earth Engine’s Python API. From raw satellite data to downloadable GeoJSONs and interactive visualizations, our methodology automates LST extraction for Indian cities at both monthly and annual scales.
+  </div>
+</div>
+
+
+</div>
+
+
+
+</main>
+
+<script>
+    function toggleNav() {
+      const sidenav = document.getElementById("mySidenav");
+      const main = document.getElementById("mainContent");
+      const isOpen = sidenav.style.width === "250px";
+  
+      sidenav.style.width = isOpen ? "0" : "250px";
+      main.style.marginLeft = isOpen ? "0" : "250px";
+    }
+  
+    // Smooth scroll and sidebar auto-close on menu item click
+    document.querySelectorAll('.sidenav a[href^="#"]').forEach(link => {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          // Scroll with 1cm (approx 38px) offset for header
+          const offset = 80;
+          const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+          window.scrollTo({ top, behavior: "smooth" });
+  
+          // Close sidebar
+          document.getElementById("mySidenav").style.width = "0";
+          document.getElementById("mainContent").style.marginLeft = "0";
+        }
+      });
+    });
+  </script>
+  
+  
+  
+
+  
+  
+
+</body>
+</html>

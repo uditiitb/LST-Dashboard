@@ -1,0 +1,153 @@
+Step-by-Step: Setup Google Earth Engine API with a Service Account
+Step 1: Enable Earth Engine API
+Go to the Google Cloud Console.
+
+Create a new project or use an existing one.
+
+Navigate to "APIs & Services" > "Library".
+
+Search for "Earth Engine API" and click Enable.
+
+Step 2: Create a Service Account
+Go to "IAM & Admin" > "Service Accounts".
+
+Click "Create Service Account".
+
+Fill in the name and ID (e.g., lst-project), then click Create and Continue.
+
+Assign no roles (leave it empty or select "Viewer").
+
+Click Done.
+
+Step 3: Create a JSON Key
+Click on the service account name you just created.
+
+Go to the "Keys" tab.
+
+Click "Add Key" > "Create new key", select JSON, and download the file.
+
+Save this file securely — this is your credentials.json.
+
+Step 4: Share Earth Engine Access with the Service Account
+Go to https://code.earthengine.google.com/.
+
+Click on your profile picture → "Manage Service Accounts" or go directly to:
+https://code.earthengine.google.com/permissions
+
+Add the service account email (e.g., lst-project@your-project.iam.gserviceaccount.com) and give it "Reader" access.
+
+Step 5: Install the Earth Engine Python API
+bash
+Copy
+Edit
+pip install earthengine-api
+Step 6: Authenticate and Initialize in Python
+python
+Copy
+Edit
+import ee
+
+# Path to your downloaded JSON key
+credentials = ee.ServiceAccountCredentials(
+    'your-service-account@your-project.iam.gserviceaccount.com',
+    'path/to/credentials.json'
+)
+
+# Initialize Earth Engine
+ee.Initialize(credentials)
+✅ You're now ready to use Earth Engine programmatically!
+
+Date Range Configuration:
+To ensure the dashboard displays recent LST trends, the system automatically computes the last two full months based on the current date. Using datetime and relativedelta, it identifies and formats the start and end dates for each of these months.
+
+Google Earth Engine Setup and Shapefile Handling
+Earth Engine Authentication:
+A Google Earth Engine (GEE) service account is used for programmatic access. The credentials JSON file is used to initialize the Earth Engine API.
+
+Shapefile Extraction:
+Each city’s administrative boundary is stored as a zipped shapefile. This file is extracted to a temporary directory.
+
+Shapefile Loading:
+The extracted .shp file is loaded using GeoPandas. All geometries within the shapefile are merged into one using union_all(), and then converted into an Earth Engine ee.Geometry object.
+
+This geometry is later used to clip and analyze satellite data specific to the city.
+
+Land Surface Temperature (LST) Extraction and Processing
+LST Calculation from Landsat:
+The script uses data from Landsat 8 and 9 (Collection 2, Tier 1) to extract surface temperature (ST_B10) and applies a scaling factor to convert it to Celsius. Cloud and cloud-shadow pixels are masked using quality flags (QA_PIXEL).
+
+Cloud-Free Median Composites:
+For each of the two most recent full months:
+
+A filtered ImageCollection is created based on the city's geometry and date range.
+
+Images are processed using the custom add_lst_and_cloud() function to mask clouds and extract LST.
+
+A median composite is generated from the cloud-free images.
+
+A pixel-level cloud-clearness mask is applied to retain only areas observed clearly at least once during the month.
+
+Per-Ward Analysis:
+Each ward’s geometry is processed individually:
+
+Mean LST is calculated using reduceRegion for each polygon.
+
+If no valid pixels are present (due to persistent cloud cover), it's flagged as cloudy.
+
+Cloud coverage is assessed by checking if any unmasked pixels are present in the ward.
+
+Data Storage:
+
+A GeoJSON file is generated with each ward’s LST and cloud coverage.
+
+Wards with valid, cloud-free readings are ranked, and the top 10 hottest wards are saved in a separate JSON.
+
+Minimum and maximum LST values are also saved for color scale normalization in the visualization.
+
+
+
+Yearly Average Temperature Estimation (ERA5 Meteoblue-style)
+Data Source:
+Hourly 2-meter air temperature data is sourced from the ERA5-Land Hourly dataset on Google Earth Engine (GEE) for the years 1980 to the previous year.
+
+Daily Averaging:
+
+For each year, temperature data is filtered by the target city’s geometry and date range.
+
+For each day, daily minimum and maximum temperatures are computed from hourly values.
+
+The daily average temperature is then estimated using the formula:
+
+𝑇
+avg
+=
+𝑇
+min
++
+𝑇
+max
+2
+T 
+avg
+​
+ = 
+2
+T 
+min
+​
+ +T 
+max
+​
+ 
+​
+ 
+Temperatures are converted from Kelvin to Celsius.
+
+Annual Aggregation:
+
+The daily average image collection is averaged over the year to obtain a single raster image representing the mean temperature for that year.
+
+This image is clipped to the city boundary, and the mean value over the area is extracted.
+
+Output Storage:
+The yearly average temperature for each year is stored in a JSON file inside a structured directory for future visualization or analysis.
