@@ -67,7 +67,8 @@ def favicon():
 def city_dashboard(city):
 
     # === CONFIG ===
-    CITY=city.capitalize()
+    # CITY=city.capitalize()
+    CITY = city.strip().upper()
     SHAPEFILE_ZIP = f"shapefiles/{CITY}.zip"
     DATA_DIR = f"static/data_json/{CITY}"
 
@@ -430,7 +431,8 @@ def calender():
 @app.route("/calender/<city>/<int:year>/<int:month>")
 def calendar_plot(city, year, month):
     # === CONFIG ===
-    CITY=city.capitalize()
+    # CITY=city.capitalize()
+    CITY = city.strip().upper()
     SHAPEFILE_ZIP = f"shapefiles/{CITY}.zip"
     DATA_DIR = f"static/data_json/{CITY}"
 
