@@ -150,4 +150,5 @@ The daily average image collection is averaged over the year to obtain a single 
 This image is clipped to the city boundary, and the mean value over the area is extracted.
 
 Output Storage:
-The yearly average temperature for each year is stored in a JSON file inside a structured directory for future visualization or analysis.
+
+The yearly average temperature for each year is stored in a JSON file inside a structured directory for future visualization or analysis..
