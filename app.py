@@ -67,8 +67,7 @@ def favicon():
 def city_dashboard(city):
 
     # === CONFIG ===
-    # CITY=city.capitalize()
-    CITY = city.strip().upper()
+    CITY=city.capitalize()
     SHAPEFILE_ZIP = f"shapefiles/{CITY}.zip"
     DATA_DIR = f"static/data_json/{CITY}"
 
@@ -100,7 +99,7 @@ def city_dashboard(city):
 
     # === AUTH ===
     service_account = "lst-223@daring-night-422219-d4.iam.gserviceaccount.com"
-    credentials = ee.ServiceAccountCredentials(service_account, '/etc/secrets/daring-night-422219-d4-f5041b31a346.json')
+    credentials = ee.ServiceAccountCredentials(service_account, 'daring-night-422219-d4-f5041b31a346.json')
     ee.Initialize(credentials)
 
     # === UNZIP SHAPEFILE ===
@@ -431,8 +430,7 @@ def calender():
 @app.route("/calender/<city>/<int:year>/<int:month>")
 def calendar_plot(city, year, month):
     # === CONFIG ===
-    # CITY=city.capitalize()
-    CITY = city.strip().upper()
+    CITY=city.capitalize()
     SHAPEFILE_ZIP = f"shapefiles/{CITY}.zip"
     DATA_DIR = f"static/data_json/{CITY}"
 
@@ -446,8 +444,8 @@ def calendar_plot(city, year, month):
     print(month_ranges)
 
     # === AUTH ===
-    service_account = "lst-project@daring-night-422219-d4.iam.gserviceaccount.com"
-    credentials = ee.ServiceAccountCredentials(service_account, 'daring-night-422219-d4-1a31eb1a4295.json')
+    service_account = "lst-223@daring-night-422219-d4.iam.gserviceaccount.com"
+    credentials = ee.ServiceAccountCredentials(service_account, 'daring-night-422219-d4-f5041b31a346.json')
     ee.Initialize(credentials)
 
     # === UNZIP SHAPEFILE ===
@@ -765,5 +763,4 @@ def calendar_plot(city, year, month):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0',debug=True)
-
+    app.run(debug=True, port=5050)
