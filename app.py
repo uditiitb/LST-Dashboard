@@ -99,8 +99,8 @@ def city_dashboard(city):
     print(month_ranges)
 
     # === AUTH ===
-    service_account = "lst-project@daring-night-422219-d4.iam.gserviceaccount.com"
-    credentials = ee.ServiceAccountCredentials(service_account, 'daring-night-422219-d4-1a31eb1a4295.json')
+    service_account = "lst-223@daring-night-422219-d4.iam.gserviceaccount.com"
+    credentials = ee.ServiceAccountCredentials(service_account, '/etc/secrets/daring-night-422219-d4-f5041b31a346.json')
     ee.Initialize(credentials)
 
     # === UNZIP SHAPEFILE ===
@@ -766,3 +766,4 @@ def calendar_plot(city, year, month):
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0',debug=True)
+
