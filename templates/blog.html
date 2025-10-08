@@ -177,12 +177,12 @@ ee.Initialize(credentials)</code></pre>
   </ol>
   
   <h3>📅 Date Range Configuration</h3>
-  <img src="static/images/date.jpg" width="400" height="300" alt="Example Image" />
+  <!-- <img src="static/images/date.jpg" width="400" height="300" alt="Example Image" /> -->
 
   <p>The dashboard auto-computes the last two full months based on the current date using <code>datetime</code> and <code>relativedelta</code>. It prepares start/end dates to fetch and process temperature data per city. Each city’s output is stored in structured folders named by city and month.</p>
 
   <h3>🗺️ Google Earth Engine Setup and Shapefile Handling</h3>
-  <img src="static/images/setup.jpg" width="600" height="300" alt="Example Image" />
+  <!-- <img src="static/images/setup.jpg" width="600" height="300" alt="Example Image" /> -->
   <ul>
     <li><strong>Authentication:</strong> Earth Engine is initialized via a service account and JSON key.</li>
     <li><strong>Shapefile Extraction:</strong> Each city’s boundary is stored as a zipped shapefile. It's extracted temporarily.</li>
@@ -190,8 +190,8 @@ ee.Initialize(credentials)</code></pre>
   </ul>
 
   <h3>🌡️ Land Surface Temperature (LST) Extraction and Processing</h3>
-  <img src="static/images/i3.jpg" alt="Example Image" />
-  <img src="static/images/i2.jpg" alt="Example Image" />
+  <!-- <img src="static/images/i3.jpg" alt="Example Image" /> -->
+  <!-- <img src="static/images/i2.jpg" alt="Example Image" /> -->
   <ul>
     <li><strong>LST from Landsat:</strong> Landsat 8 & 9 data (ST_B10 band) is used. It's scaled to Celsius and cloud/cloud-shadow pixels are masked using QA flags.</li>
     <li><strong>Monthly Composites:</strong> For each month, imagery is filtered by city geometry and date range. A median composite is created from clear pixels.</li>
@@ -206,7 +206,7 @@ ee.Initialize(credentials)</code></pre>
   </ul>
 
   <h3>📊 Yearly Average Temperature (ERA5 - Meteoblue Style)</h3>
-  <img src="static/images/year.jpg" alt="Example Image" />
+  <!-- <img src="static/images/year.jpg" alt="Example Image" /> -->
   <ul>
     <li><strong>Source:</strong> ERA5-Land Hourly (2m air temp) data via GEE, from 1980 to previous year</li>
     <li><strong>Processing:</strong> For each year:
@@ -220,7 +220,7 @@ ee.Initialize(credentials)</code></pre>
   </ul>
 
   <h3>🗺️ LST Visualization Tiles (2025)</h3>
-  <img src="static/images/lst.jpg" alt="Example Image" />
+  <!-- <img src="static/images/lst.jpg" alt="Example Image" /> -->
   <ul>
     <li><strong>Cloud Filtering:</strong> Landsat 8/9 images are filtered to exclude dilated clouds, cirrus, cloud shadows, and snow using QA_PIXEL bits.</li>
     <li><strong>LST Calculation:</strong> ST_B10 is scaled to °C. Only cloud-free pixels are used for a monthly median composite.</li>
